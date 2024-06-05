@@ -1,7 +1,7 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
-import graph_representation as gr
+import graph_representation_ivan as gr
 
 
 def main():
