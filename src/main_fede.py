@@ -7,56 +7,55 @@ BIG_NUMBER = 1e10
 
 
 def main():
-    # filename = "instances/toy_instance.json"
+    filename = "instances/toy_instance.json"
     filename = "instances/retiro-tigre-semana.json"
 
     with open(filename) as json_file:
         data = json.load(json_file)
 
-    # Station parts
+    # Station names
     station_codes = []
-    i = 0
     for station in data["stations"]:
-        station_codes.append(i)
-        i += 1
+        station_codes.append(station)
 
     # Construcción de grafo modelo
     G = nx.DiGraph()
     colors = []
+    labels = {}
     pos = {}
     border_colors = []
     edge_colors = {}
-
-    first_service_for_station = []
-    last_service_for_station = []
 
     # Nodos y arcos de salidad y llegadas
     for service in data["services"]:
         for stop in data["services"][service]["stops"]:
 
             # Create the nodes
-            if stop["station"] == data["stations"][0]:
-                G.add_node(stop["time"])
-                pos[stop["time"]] = (0, stop["time"] * 10)
+            if stop["station"] == station_codes[0]:
+                G.add_node((stop["time"], station_codes[0]))
+                pos[(stop["time"], station_codes[0])] = (0, stop["time"] * 10)
+                labels[(stop["time"], station_codes[0])] = stop["time"]
                 if stop["type"] == "D":
-                    depart = stop["time"]
+                    depart = (stop["time"], station_codes[0])
                     colors.append("#CCCCFF")
                     border_colors.append("blue")
                 elif stop["type"] == "A":
-                    arrival = stop["time"]
+                    arrival = (stop["time"], station_codes[0])
                     colors.append("#FFCCCC")
                     border_colors.append("red")
             else:
-                G.add_node(stop["time"] + 0.5)
-                pos[stop["time"] + 0.5] = (0.5, stop["time"] * 10)
+                G.add_node((stop["time"], station_codes[1]))
+                pos[(stop["time"], station_codes[1])] = (0.5, stop["time"] * 10)
+                labels[(stop["time"], station_codes[1])] = stop["time"]
                 if stop["type"] == "D":
-                    depart = stop["time"] + 0.5
+                    depart = (stop["time"], station_codes[1])
                     colors.append("#CCCCFF")
                     border_colors.append("blue")
                 elif stop["type"] == "A":
-                    arrival = stop["time"] + 0.5
+                    arrival = (stop["time"], station_codes[1])
                     colors.append("#FFCCCC")
                     border_colors.append("red")
+
         edge_colors[depart, arrival] = "green"
         G.add_edge(
             depart,
@@ -71,17 +70,15 @@ def main():
     night_edges = []
     # Arcos para cada estación
     station_index = 0
-    for station in data["stations"]:
+    for station in station_codes:
         train_order = []
         for service in data["services"]:
             for stop in data["services"][service]["stops"]:
                 if stop["station"] == station:
-                    train_order.append(stop["time"] + station_index / 2)
-        train_order.sort()
+                    train_order.append((stop["time"], station_codes[station_index]))
+        train_order.sort(key=lambda tup: tup[0])
         i = 0
 
-        first_service_for_station.append(train_order[0])
-        last_service_for_station.append(train_order[len(train_order) - 1])
         while i < len(train_order):
             # caso trasnoche
             if i == len(train_order) - 1:
@@ -147,7 +144,9 @@ def main():
         edgecolors=border_colors,
     )
 
-    nx.draw_networkx_labels(G_prime, pos=pos, font_size=8, font_family="serif")
+    nx.draw_networkx_labels(
+        G_prime, pos=pos, labels=labels, font_size=8, font_family="serif"
+    )
 
     i = 0
     for edge in G_prime.edges():
