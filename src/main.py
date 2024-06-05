@@ -2,17 +2,6 @@ import sys
 from helpers.utils import *
 from helpers.constants import INSTANCES
 
-def print_usage():
-    usage_message = """
-    Usage:
-        main.py -i 'instancia'
-    
-    Options:
-        -i    Especifique el nombre de la instancia. Los nombres de instancia válidos son: {}
-    """.format(', '.join(INSTANCES))
-    
-    print(usage_message)
-
 def main():
     if len(sys.argv) != 3 or sys.argv[1] not in ('-i', '--instance') or sys.argv[2] in ('-h', '--help'):
         print_usage()

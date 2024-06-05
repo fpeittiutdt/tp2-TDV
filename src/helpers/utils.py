@@ -3,6 +3,17 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from .constants import INSTANCES, BIG_NUMBER
 
+def print_usage():
+    usage_message = """
+    Usage:
+        main.py -i 'instancia'
+    
+    Options:
+        -i    Especifique el nombre de la instancia. Los nombres de instancia válidos son: {}
+    """.format(', '.join(INSTANCES))
+    
+    print(usage_message)
+
 def load_instance(instance:str):
     with open('./instances/{}.json'.format(INSTANCES[instance])) as json_file:
         return json.load(json_file)
