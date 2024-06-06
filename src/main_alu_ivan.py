@@ -1,7 +1,7 @@
 import json
 import networkx as nx
 import matplotlib.pyplot as plt
-import graph_representation_ivan as gr
+import main_combinado as gr
 
 
 def main():
@@ -17,22 +17,58 @@ def main():
 	for service in data["services"]:
 		print(service, data["services"][service]["stops"])
 	
-	grafo_retiro_tigre = gr.create_graph(data)
+	grafo_retiro_tigre, posiciones, night_edges = gr.create_graph(data)
 
 	lista_retiro = []
 	lista_tigre = []
+	lista_colores = []
+	labels = {}
 	for nodo in grafo_retiro_tigre.nodes(data=True):
+		lista_colores.append(nodo[1]["color"])
+		labels[nodo[0]] = nodo[0]
 		if nodo[1]["stations"] == "Retiro":
 			lista_retiro.append(nodo[0])
 		else:
 			lista_tigre.append(nodo[0])
 	
 	lista_tigre.sort()
-	lista_retiro.sort(reverse=True)
+	lista_retiro.sort()
 	
-	pos = nx.bipartite_layout(grafo_retiro_tigre, nodes=lista_retiro)
+	#pos = nx.bipartite_layout(grafo_retiro_tigre, nodes=lista_retiro)
 
-	for arista in grafo_retiro_tigre.edges():
+	nx.draw_networkx_nodes(
+        grafo_retiro_tigre,
+        node_color=lista_colores,
+        pos=posiciones,
+        node_size=400,
+        node_shape="s",
+        linewidths=grafo_retiro_tigre.number_of_nodes() * [1],
+    )
+	
+	nx.draw_networkx_labels(
+        grafo_retiro_tigre, pos=posiciones, labels=labels, font_size=8, font_family="serif"
+    )
+
+	i = 0
+	for edge in grafo_retiro_tigre.edges():
+		if edge in night_edges:
+			nx.draw_networkx_edges(
+                grafo_retiro_tigre,
+                pos=posiciones,
+                edgelist=[edge],
+                connectionstyle="arc3, rad = 0.5",
+            )
+		else:
+			nx.draw_networkx_edges(
+                grafo_retiro_tigre, edgelist=[edge], pos=posiciones
+            )
+		i += 1
+
+	plt.gca().invert_yaxis()
+	plt.gca().invert_xaxis()
+	plt.show()
+
+	"""for arista in grafo_retiro_tigre.edges():
 		if (arista[0] == lista_retiro[0] and arista[1] == lista_retiro[len(lista_retiro)-1]) or (arista[0] == lista_tigre[len(lista_tigre)-1] and arista[1] == lista_tigre[0]):
 			nx.draw_networkx_edges(grafo_retiro_tigre, edgelist=[arista], pos=pos, connectionstyle="arc3, rad = 0.5")
 		else:
@@ -41,7 +77,7 @@ def main():
 	nx.draw(grafo_retiro_tigre, pos, with_labels = True, font_weight ="bold", node_color=[nodo[1]["color"] for nodo in grafo_retiro_tigre.nodes(data=True)], node_size = 1000)
 	labels = nx.get_edge_attributes(grafo_retiro_tigre, "upper_bound")
 	nx.draw_networkx_edge_labels(grafo_retiro_tigre, pos, edge_labels=labels)
-	plt.show()
+	plt.show()"""
 
 	solucion = nx.min_cost_flow(grafo_retiro_tigre, capacity="upper_bound")
 	costo_minimo = nx.cost_of_flow(grafo_retiro_tigre, solucion)

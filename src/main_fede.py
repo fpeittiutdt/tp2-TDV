@@ -8,7 +8,7 @@ BIG_NUMBER = 1e10
 
 def main():
     filename = "instances/toy_instance.json"
-    filename = "instances/retiro-tigre-semana.json"
+    #filename = "instances/retiro-tigre-semana.json"
 
     with open(filename) as json_file:
         data = json.load(json_file)
@@ -25,7 +25,7 @@ def main():
     pos = {}
     border_colors = []
     edge_colors = {}
-
+    
     # Nodos y arcos de salidad y llegadas
     for service in data["services"]:
         for stop in data["services"][service]["stops"]:
