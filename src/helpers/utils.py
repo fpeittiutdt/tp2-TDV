@@ -72,10 +72,12 @@ def add_nodes_and_edges(G, instance, station_codes):
 
     for service in instance['services']:
         for stop in instance['services'][service]['stops']:
+            
             station_index = 0 if stop['station'] == station_codes[0] else 1
             G.add_node((stop['time'], station_codes[station_index]))
             pos[(stop['time'], station_codes[station_index])] = (station_index * 0.5, stop['time'] * 10)
             labels[(stop['time'], station_codes[station_index])] = stop['time']
+            
             if stop['type'] == 'D':
                 depart = (stop['time'], station_codes[station_index])
                 colors.append('#CCCCFF')
@@ -84,7 +86,9 @@ def add_nodes_and_edges(G, instance, station_codes):
                 arrival = (stop['time'], station_codes[station_index])
                 colors.append('#FFCCCC')
                 border_colors.append('red')
+                
         edge_colors[depart, arrival] = 'green'
+        
         G.add_edge(
             depart,
             arrival,
@@ -190,6 +194,7 @@ def visualize_graph(G_prime, colors, pos, labels, border_colors, edge_colors, ni
     nx.draw_networkx_nodes(G_prime, node_color=colors, pos=pos, node_size=400, node_shape='s', linewidths=G_prime.number_of_nodes() * [1], edgecolors=border_colors)
     nx.draw_networkx_labels(G_prime, pos=pos, labels=labels, font_size=8, font_family='serif')
 
+    
     for edge in G_prime.edges():
         if edge in night_edges:
             nx.draw_networkx_edges(G_prime, pos=pos, edgelist=[edge], edge_color=edge_colors[edge], connectionstyle='arc3, rad=0.5')
