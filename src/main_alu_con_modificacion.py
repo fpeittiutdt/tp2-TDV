@@ -5,10 +5,11 @@ import main_combinado as gr
 
 def main():
 
-    #filename = "instances/toy_instance.json"
-    #filename = "instances/retiro-tigre-semana.json"
+    print("AGREGANDO MODIFICACION")
+    
+    filename = "instances/toy_instance.json"
     #filename = "datos_en_json.json"
-    filename = "instances/experiment.json"
+    #filename = "instances/experiment.json"
     with open(filename) as json_file:
         data = json.load(json_file)
     
@@ -18,8 +19,8 @@ def main():
 
     graph_representation, positions, night_edges = gr.create_graph(data)
     
-    print(positions, "posicionessssss")
-
+    grafo_modificado, positions, night_edges = gr.agregar_limitacion2(data, graph_representation, "Tigre", 10)
+    
     list_one = []
     list_zero = []
     list_colors = []
@@ -60,7 +61,6 @@ def main():
         graph_representation, pos=positions, labels=labels, font_size=8, font_family="serif"
     )
 
-    print(graph_representation.edges(data=True))
     for edge in graph_representation.edges():
         if edge in night_edges:
             nx.draw_networkx_edges(
@@ -83,7 +83,7 @@ def main():
             nx.draw_networkx_edges(
                 graph_representation, edgelist=[edge], pos=positions
             )
-
+            print(edge)
             nx.draw_networkx_edge_labels(
                     graph_representation,
                     pos=positions,
@@ -97,13 +97,13 @@ def main():
     plt.gca().invert_xaxis()
     plt.show()
 
-    solucion = nx.min_cost_flow(graph_representation, capacity="upper_bound")
-    costo_minimo = nx.cost_of_flow(graph_representation, solucion)
+    solucion = nx.min_cost_flow(grafo_modificado, capacity="upper_bound")
+    costo_minimo = nx.cost_of_flow(grafo_modificado, solucion)
     print("solucion: ", solucion, "costo minimo: ", costo_minimo)
 
     for nodo1 in solucion:
         for nodo2 in solucion[nodo1]:
-            solucion[nodo1][nodo2] += graph_representation[nodo1][nodo2]["amount_modified"]
+            solucion[nodo1][nodo2] += grafo_modificado[nodo1][nodo2]["amount_modified"]
 
     print("solucion modificada: ", solucion)
 
@@ -114,9 +114,8 @@ def main():
 
     print(f"{name_station_zero}: {first_zero} y {name_station_one}: {first_one}")
 
-    costo_minimo = nx.cost_of_flow(graph_representation, solucion)
+    costo_minimo = nx.cost_of_flow(grafo_modificado, solucion)
     print("costo minimo: ", costo_minimo)
-
 
 if __name__ == "__main__":
 	main()
