@@ -290,7 +290,6 @@ def visualize_graph(
                 G_prime,
                 pos=pos,
                 edge_labels={edge: minCostFlow[edge[0]][edge[1]]},
-                label_pos=0.5,
                 font_size=20,
                 rotate=False,
                 connectionstyle="arc3, rad=0.5",
@@ -303,3 +302,141 @@ def visualize_graph(
     plt.gca().invert_yaxis()
     plt.gca().invert_xaxis()
     plt.show()
+
+
+def add_limitation(G, target_station, upper_bound):
+    last_train = None
+    first_train = None
+    for node in G.nodes(data=True):
+        if node[1]["stations"] == target_station:
+            if last_train is None or last_train < node[0]:
+                last_train = node[0]
+            elif first_train is None or first_train > node[0]:
+                first_train = node[0]
+
+    G[last_train][first_train]["upper_bound"] = upper_bound
+    return G
+
+
+def add_limitation2(
+    instance, G, target_station, upper_bound, colors, edge_colors, border_colors
+):
+    station_names = [instance["stations"][0], instance["stations"][1]]
+
+    G_prime = add_limitation(G, target_station, upper_bound)
+    last_trains = [(None, None), (None, None)]
+    first_trains = [(None, None), (None, None)]
+    night_edges = []
+    for node in G.nodes(data=True):
+        if node[1]["stations"] == station_names[0]:
+            if last_trains[0][0] is None and first_trains[0][0] is None:
+                last_trains[0] = node[0]
+                first_trains[0] = node[0]
+            elif last_trains[0][0] < node[0][0]:
+                last_trains[0] = node[0]
+            elif first_trains[0][0] > node[0][0]:
+                first_trains[0] = node[0]
+        else:
+            if last_trains[1][0] is None and first_trains[1][0] is None:
+                last_trains[1] = node[0]
+                first_trains[1] = node[0]
+            elif last_trains[1][0] < node[0][0]:
+                last_trains[1] = node[0]
+            elif first_trains[1][0] > node[0][0]:
+                first_trains[1] = node[0]
+
+    new_nodes = [
+        (last_trains[0][0] + 1, station_names[0]),
+        (first_trains[0][0] - 1, station_names[0]),
+        (last_trains[1][0] + 1, station_names[1]),
+        (first_trains[1][0] - 1, station_names[1]),
+    ]
+
+    G_prime.add_node(new_nodes[1], stations=station_names[0])
+    colors.append("yellow")
+    border_colors.append("orange")
+    G_prime.add_node(new_nodes[3], stations=station_names[1])
+    colors.append("yellow")
+    border_colors.append("orange")
+    G_prime.add_node(new_nodes[0], stations=station_names[0])
+    colors.append("yellow")
+    border_colors.append("orange")
+    G_prime.add_node(new_nodes[2], stations=station_names[1])
+    colors.append("yellow")
+    border_colors.append("orange")
+
+    night_edges.append((new_nodes[0], new_nodes[1]))
+    night_edges.append((new_nodes[2], new_nodes[3]))
+
+    if target_station == station_names[0]:
+        G_prime.add_edge(
+            new_nodes[0],
+            new_nodes[1],
+            weight=instance[COST][station_names[0]],
+            amount_modified=0,
+            upper_bound=G_prime[last_trains[0]][first_trains[0]]["upper_bound"],
+        )
+        edge_colors[new_nodes[0], new_nodes[1]] = "purple"
+        G_prime.add_edge(
+            new_nodes[2],
+            new_nodes[3],
+            weight=instance[COST][station_names[1]],
+            amount_modified=0,
+        )
+        edge_colors[new_nodes[2], new_nodes[3]] = "purple"
+        G_prime.add_edge(new_nodes[3], new_nodes[1], amount_modified=0)
+        edge_colors[new_nodes[3], new_nodes[1]] = "orange"
+        G_prime.add_edge(new_nodes[0], new_nodes[2], amount_modified=0)
+        edge_colors[new_nodes[0], new_nodes[2]] = "orange"
+    else:
+        G_prime.add_edge(
+            new_nodes[0],
+            new_nodes[1],
+            weight=instance[COST][station_names[0]],
+            amount_modified=0,
+        )
+        edge_colors[new_nodes[0], new_nodes[1]] = "purple"
+        G_prime.add_edge(
+            new_nodes[2],
+            new_nodes[3],
+            weight=instance[COST][station_names[1]],
+            amount_modified=0,
+            upper_bound=G_prime[last_trains[1]][first_trains[1]]["upper_bound"],
+        )
+        edge_colors[new_nodes[2], new_nodes[3]] = "purple"
+        G_prime.add_edge(new_nodes[1], new_nodes[3], amount_modified=0)
+        edge_colors[new_nodes[1], new_nodes[3]] = "orange"
+        G_prime.add_edge(new_nodes[2], new_nodes[0], amount_modified=0)
+        edge_colors[new_nodes[2], new_nodes[0]] = "orange"
+
+    G_prime.remove_edges_from(
+        [(last_trains[0], first_trains[0]), (last_trains[1], first_trains[1])]
+    )
+
+    G_prime.add_edge(new_nodes[1], first_trains[0], amount_modified=0)
+    edge_colors[new_nodes[1], first_trains[0]] = "orange"
+    G_prime.add_edge(new_nodes[3], first_trains[1], amount_modified=0)
+    edge_colors[new_nodes[3], first_trains[1]] = "orange"
+    G_prime.add_edge(last_trains[0], new_nodes[0], amount_modified=0)
+    edge_colors[last_trains[0], new_nodes[0]] = "orange"
+    G_prime.add_edge(last_trains[1], new_nodes[2], amount_modified=0)
+    edge_colors[last_trains[1], new_nodes[2]] = "orange"
+
+    pos = {}
+    servicios: json = instance[SERVICES]
+
+    uniform_positions = [x for x in range(len(servicios) * 2 + 4)]
+
+    nodes = list(G_prime.nodes())
+    nodes.sort(key=lambda x: x[0])
+    nodes_by_station = {station_names[0]: [], station_names[1]: []}
+
+    for node_pos in range(len(nodes)):
+        if nodes[node_pos][1] == station_names[0]:
+            nodes_by_station[station_names[0]].append(nodes[node_pos])
+            pos[nodes[node_pos]] = (0, uniform_positions[node_pos])
+        else:
+            nodes_by_station[station_names[1]].append(nodes[node_pos])
+            pos[nodes[node_pos]] = (0.5, uniform_positions[node_pos])
+
+    return G_prime, pos, night_edges, colors, edge_colors, border_colors
