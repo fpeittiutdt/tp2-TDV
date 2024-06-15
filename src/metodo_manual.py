@@ -23,15 +23,13 @@ def process_services(data):
     for service_id, service in services.items():
         demand = service["demand"][0]
         for stop in service["stops"]:
-            events.append(
-                (stop["time"], stop["station"], stop["type"], service_id, demand)
-            )
+            events.append((stop["time"], stop["station"], stop["type"], demand))
 
     events.sort()
 
     # Procesar cada evento
     for event in events:
-        time, station, event_type, service_id, demand = event
+        time, station, event_type, demand = event
 
         minimum_units = math.ceil(demand / data["rs_info"]["capacity"])
 

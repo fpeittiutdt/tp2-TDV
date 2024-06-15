@@ -1,7 +1,7 @@
 import json, math
 import networkx as nx
 import matplotlib.pyplot as plt
-from .constants import INSTANCES, BIG_NUMBER
+from .constants import *
 
 
 def print_usage():
@@ -33,198 +33,233 @@ def load_instance(instance: str):
         return json.load(json_file)
 
 
-def initialize_graph(instance):
+def add_services(instance):
     """
-    Inicializa un grafo dirigido y obtiene una lista de códigos de estaciones a partir de una instancia dada.
+    Agrega nodes y aristas al G G según la información proporcionada en la instancia.
 
     Parámetros:
-    instance (dict): Un diccionario que contiene una clave 'stations' con los códigos de estaciones.
-
-    Retorna:
-    tuple: Una tupla que contiene:
-        - G (networkx.DiGraph): Un grafo dirigido vacío.
-        - station_codes (list): Una lista de códigos de estaciones extraídos de la instancia.
-    """
-
-    station_codes = [station for station in instance["stations"]]
-    G = nx.DiGraph()
-    return G, station_codes
-
-
-def add_nodes_and_edges(G, instance, station_codes):
-    """
-    Agrega nodos y aristas al grafo G según la información proporcionada en la instancia.
-
-    Parámetros:
-    G (networkx.Graph): El grafo al que se agregarán los nodos y aristas.
+    G (networkx.Graph): El G al que se agregarán los nodes y aristas.
     instance (dict): Un diccionario que contiene la información de la instancia.
     station_codes (list): Una lista de códigos de estaciones.
 
     Retorna:
     tuple: Una tupla que contiene:
-        - G (networkx.Graph): El grafo actualizado con nodos y aristas.
-        - colors (list): Una lista de colores para los nodos.
-        - labels (dict): Un diccionario que asigna etiquetas a los nodos.
-        - pos (dict): Un diccionario que asigna posiciones a los nodos.
-        - border_colors (list): Una lista de colores de borde para los nodos.
+        - G (networkx.Graph): El G actualizado con nodes y aristas.
+        - colors (list): Una lista de colores para los nodes.
+        - labels (dict): Un diccionario que asigna etiquetas a los nodes.
+        - pos (dict): Un diccionario que asigna posiciones a los nodes.
+        - border_colors (list): Una lista de colores de borde para los nodes.
         - edge_colors (dict): Un diccionario que asigna colores a las aristas.
     """
+    G = nx.DiGraph()
+
+    services = instance[SERVICES]
+
+    station_names = [instance["stations"][0], instance["stations"][1]]
+
+    services_by_station = {station_names[0]: [], station_names[1]: []}
+
+    pos = {}
+    uniform_positions = [x for x in range(len(services) * 2)]
 
     colors = []
-    labels = {}
-    pos = {}
     border_colors = []
     edge_colors = {}
+    labels = {}
 
-    for service in instance['services']:
-        for stop in instance['services'][service]['stops']:
-            
-            station_index = 0 if stop['station'] == station_codes[0] else 1
-            G.add_node((stop['time'], station_codes[station_index]))
-            pos[(stop['time'], station_codes[station_index])] = (station_index * 0.5, stop['time'] * 10)
-            labels[(stop['time'], station_codes[station_index])] = stop['time']
-            
-            if stop['type'] == 'D':
-                depart = (stop['time'], station_codes[station_index])
-                colors.append('#CCCCFF')
-                border_colors.append('blue')
-            elif stop['type'] == 'A':
-                arrival = (stop['time'], station_codes[station_index])
-                colors.append('#FFCCCC')
-                border_colors.append('red')
-                
-        edge_colors[depart, arrival] = 'green'
-        
-        G.add_edge(
-            depart,
-            arrival,
-            capacity=instance["rs_info"]["max_rs"],
-            demand=math.ceil(
-                instance["services"][service]["demand"][0]
-                / instance["rs_info"]["capacity"]
-            ),
-            cost=0,
+    for service in services:
+
+        depart_time = services[service][STOPS][0][TIME]
+        arrival_time = services[service][STOPS][1][TIME]
+        depart_station = services[service][STOPS][0][STATION]
+        arrival_station = services[service][STOPS][1][STATION]
+        departure = (depart_time, depart_station)
+        arrival = (arrival_time, arrival_station)
+        minimum_units = math.ceil(
+            services[service][DEMAND][0] / instance[RS_INFO][CAPACITY]
         )
-    return G, colors, labels, pos, border_colors, edge_colors
+        # Para el camnbio de variable
+        upper_bound_modified = instance[RS_INFO][MAX_RS] - minimum_units
+
+        if departure in G.nodes():
+            demand = G.nodes(data=True)[departure][DEMAND]
+            G.nodes(data=True)[departure][DEMAND] = demand + minimum_units
+        else:
+            G.add_node(
+                departure,
+                color="blue",
+                stations=depart_station,
+                demand=minimum_units,
+            )
+            labels[departure] = departure[0]
+            colors.append("#CCCCFF")
+            border_colors.append("blue")
+
+        if arrival in G.nodes():
+            demand = G.nodes(data=True)[arrival][DEMAND]
+            G.nodes(data=True)[arrival][DEMAND] = demand - minimum_units
+        else:
+            G.add_node(
+                arrival,
+                color="red",
+                stations=arrival_station,
+                demand=-minimum_units,
+            )
+            colors.append("#FFCCCC")
+            border_colors.append("red")
+            labels[arrival] = arrival[0]
+
+        G.add_edge(
+            departure,
+            arrival,
+            upper_bound=upper_bound_modified,
+            amount_modified=minimum_units,
+        )
+        edge_colors[departure, arrival] = "green"
+
+        if depart_station == station_names[0]:
+            services_by_station[station_names[0]].append(departure)
+            services_by_station[station_names[1]].append(arrival)
+        else:
+            services_by_station[station_names[1]].append(departure)
+            services_by_station[station_names[0]].append(arrival)
+
+    services_by_station[station_names[0]].sort(key=lambda x: x[0])
+    services_by_station[station_names[1]].sort(key=lambda x: x[0])
+
+    nodes = list(G.nodes())
+    nodes.sort()
+    for node_pos in range(len(nodes)):
+        if nodes[node_pos][1] == station_names[0]:
+            pos[nodes[node_pos]] = (0, uniform_positions[node_pos])
+        else:
+            pos[nodes[node_pos]] = (0.5, uniform_positions[node_pos])
+
+    return G, colors, pos, labels, border_colors, edge_colors, services_by_station
 
 
-def add_night_edges(G, instance, station_codes, edge_colors):
+def add_night_pass_edges(G, instance, edge_colors, services_by_station):
     """
-    Agrega aristas para representar conexiones nocturnas entre estaciones en el grafo G.
+    Agrega aristas para representar conexiones nocturnas entre estaciones en el G G.
 
     Parámetros:
-    G (networkx.Graph): El grafo al que se agregarán las aristas.
+    G (networkx.Graph): El G al que se agregarán las aristas.
     instance (dict): Un diccionario que contiene la información de la instancia.
     station_codes (list): Una lista de códigos de estaciones.
     edge_colors (dict): Un diccionario que asigna colores a las aristas.
 
     Retorna:
     tuple: Una tupla que contiene:
-        - G (networkx.Graph): El grafo actualizado con las aristas nocturnas.
-        - night_edges (list): Una lista de aristas nocturnas agregadas al grafo.
+        - G (networkx.Graph): El G actualizado con las aristas nocturnas.
+        - night_edges (list): Una lista de aristas nocturnas agregadas al G.
     """
 
     night_edges = []
-    for station in station_codes:
-        train_order = [
-            (stop["time"], station)
-            for service in instance["services"]
-            for stop in instance["services"][service]["stops"]
-            if stop["station"] == station
-        ]
-        train_order.sort(key=lambda tup: tup[0])
-        for i in range(len(train_order)):
-            if i == len(train_order) - 1:
-                night_edges.append((train_order[i], train_order[0]))
-                edge_colors[(train_order[i], train_order[0])] = "purple"
-                G.add_edge(
-                    train_order[i],
-                    train_order[0],
-                    capacity=BIG_NUMBER,
-                    demand=0,
-                    cost=1,
-                )
-            else:
-                edge_colors[train_order[i], train_order[i + 1]] = "blue"
-                G.add_edge(
-                    train_order[i],
-                    train_order[i + 1],
-                    capacity=BIG_NUMBER,
-                    demand=0,
-                    cost=0,
-                )
-    return G, night_edges
 
+    station_names = [instance["stations"][0], instance["stations"][1]]
 
-def adjust_graph_for_flow(G):
-    """
-    Ajusta el grafo G para reflejar el flujo de la red, actualizando las capacidades de las aristas y los desequilibrios en los nodos.
+    for service_pos in range(0, len(services_by_station[station_names[0]]) - 1):
 
-    Parámetros:
-    G (networkx.Graph): El grafo a ajustar.
-
-    Retorna:
-    networkx.Graph: El grafo ajustado con las capacidades y los desequilibrios actualizados.
-    """
-
-    G_prime = G.copy()
-    capacities = nx.get_edge_attributes(G, "capacity")
-    demands = nx.get_edge_attributes(G, "demand")
-    costs = nx.get_edge_attributes(G, "cost")
-
-    for node in G.nodes():
-        inbalance = 0
-        out_neighbors = list(G.neighbors(node))
-
-        for out_node in out_neighbors:
-            new_capacity = capacities[(node, out_node)] - demands[(node, out_node)]
-            G_prime.remove_edge(node, out_node)
-            G_prime.add_edge(
-                node, out_node, capacity=new_capacity, cost=costs[(node, out_node)]
+        if (
+            services_by_station[station_names[0]][service_pos]
+            != services_by_station[station_names[0]][service_pos + 1]
+        ):
+            G.add_edge(
+                services_by_station[station_names[0]][service_pos],
+                services_by_station[station_names[0]][service_pos + 1],
+                amount_modified=0,
             )
-            inbalance -= demands[(node, out_node)]
+            edge_colors[
+                (
+                    services_by_station[station_names[0]][service_pos],
+                    services_by_station[station_names[0]][service_pos + 1],
+                )
+            ] = "blue"
 
-        for in_node in G.predecessors(node):
-            inbalance += demands[(in_node, node)]
+    for service_pos in range(0, len(services_by_station[station_names[1]]) - 1):
+        if (
+            services_by_station[station_names[1]][service_pos]
+            != services_by_station[station_names[1]][service_pos + 1]
+        ):
+            G.add_edge(
+                services_by_station[station_names[1]][service_pos],
+                services_by_station[station_names[1]][service_pos + 1],
+                amount_modified=0,
+            )
+            edge_colors[
+                (
+                    services_by_station[station_names[1]][service_pos],
+                    services_by_station[station_names[1]][service_pos + 1],
+                )
+            ] = "blue"
 
-        G_prime.nodes[node]["inbalance"] = -inbalance
-
-    return G_prime
-
-
-def calculate_min_cost_flow(G_prime):
-    """
-    Calcula el flujo de costo mínimo en el grafo G_prime.
-
-    Parámetros:
-    G_prime (networkx.Graph): El grafo sobre el cual calcular el flujo de costo mínimo.
-
-    Retorna:
-    tuple: Una tupla que contiene:
-        - minCost (float): El costo total mínimo del flujo.
-        - minCostFlow (dict): Un diccionario que contiene el flujo de costo mínimo en el grafo.
-    """
-
-    minCost, minCostFlow = nx.network_simplex(
-        G_prime, demand="inbalance", capacity="capacity", weight="cost"
+    G.add_edge(
+        services_by_station[station_names[0]][
+            len(services_by_station[station_names[0]]) - 1
+        ],
+        services_by_station[station_names[0]][0],
+        weight=instance[COST][station_names[0]],
+        amount_modified=0,
     )
-    return minCost, minCostFlow
+    night_edges.append(
+        (
+            services_by_station[station_names[0]][
+                len(services_by_station[station_names[0]]) - 1
+            ],
+            services_by_station[station_names[0]][0],
+        )
+    )
+    edge_colors[
+        (
+            services_by_station[station_names[0]][
+                len(services_by_station[station_names[0]]) - 1
+            ],
+            services_by_station[station_names[0]][0],
+        )
+    ] = "purple"
+
+    G.add_edge(
+        services_by_station[station_names[1]][
+            len(services_by_station[station_names[1]]) - 1
+        ],
+        services_by_station[station_names[1]][0],
+        weight=instance[COST][station_names[1]],
+        amount_modified=0,
+    )
+    night_edges.append(
+        (
+            services_by_station[station_names[1]][
+                len(services_by_station[station_names[1]]) - 1
+            ],
+            services_by_station[station_names[1]][0],
+        )
+    )
+    edge_colors[
+        (
+            services_by_station[station_names[1]][
+                len(services_by_station[station_names[1]]) - 1
+            ],
+            services_by_station[station_names[1]][0],
+        )
+    ] = "purple"
+
+    return G, night_edges
 
 
 def visualize_graph(
     G_prime, colors, pos, labels, border_colors, edge_colors, night_edges, minCostFlow
 ):
     """
-    Visualiza el grafo G_prime con los colores, posiciones y etiquetas proporcionados.
+    Visualiza el G G_prime con los colores, posiciones y etiquetas proporcionados.
     Parámetros:
-        G_prime (networkx.Graph): El grafo a visualizar.
-        colors (list): Una lista de colores para los nodos.
-        pos (dict): Un diccionario que asigna posiciones a los nodos.
-        labels (dict): Un diccionario que asigna etiquetas a los nodos.
-        border_colors (list): Una lista de colores de borde para los nodos.
+        G_prime (networkx.Graph): El G a visualizar.
+        colors (list): Una lista de colores para los nodes.
+        pos (dict): Un diccionario que asigna posiciones a los nodes.
+        labels (dict): Un diccionario que asigna etiquetas a los nodes.
+        border_colors (list): Una lista de colores de borde para los nodes.
         edge_colors (dict): Un diccionario que asigna colores a las aristas.
         night_edges (list): Una lista de aristas nocturnas.
-        minCostFlow (dict): Un diccionario que contiene el flujo de costo mínimo en el grafo.
+        minCostFlow (dict): Un diccionario que contiene el flujo de costo mínimo en el G.
     """
 
     nx.draw_networkx_nodes(
@@ -240,7 +275,6 @@ def visualize_graph(
         G_prime, pos=pos, labels=labels, font_size=8, font_family="serif"
     )
 
-    
     for edge in G_prime.edges():
         if edge in night_edges:
             rad = -0.5 if pos[edge[0]][0] != 0 else 0.5
