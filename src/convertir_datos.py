@@ -2,6 +2,7 @@ import csv
 import json
 import copy
 import pprint
+import random
 
 instance = {}
 instance['services'] = {}
@@ -60,10 +61,11 @@ with open(filename2 + '.csv', 'r', encoding="utf-8") as file:
     next(csvreader)
     
     # Loop through each row in the CSV file
-    maximo = 500
+    maximo = 5
     i = 0
     llegada = None
     salida = None
+
     for row in csvreader:
         # Each row is a list of values, you can access them by index
         #print(row)
@@ -85,13 +87,13 @@ with open(filename2 + '.csv', 'r', encoding="utf-8") as file:
                     dep = {'time': dict_tiempos[int(service_id)][0], 'station':salida, 'type':"D"}
                     arr = {'time': dict_tiempos[int(service_id)][1], 'station':llegada, 'type':"A"}
                     instance['services'][service_id]['stops'] = copy.deepcopy([dep,arr])
-                    instance['services'][service_id]['demand'] = [500]
+                    instance['services'][service_id]['demand'] = [random.randint(100, 700)]
                     i += 1
 
 
 
-instance['rs_info'] = {'capacity': 100, 'max_rs': 6}
-instance['rs_info'] = {'capacity': 100, 'max_rs': 25}
+#instance['rs_info'] = {'capacity': 100, 'max_rs': 6}
+instance['rs_info'] = {'capacity': 100, 'max_rs': 50}
 #pprint.pprint(instance)
 
 filename3 = "datos_en_json"

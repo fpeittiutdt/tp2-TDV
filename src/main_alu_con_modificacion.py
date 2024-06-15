@@ -7,7 +7,8 @@ def main():
 
     print("AGREGANDO MODIFICACION")
     
-    filename = "instances/toy_instance.json"
+    #filename = "instances/toy_instance.json"
+    filename = "instances/retiro-tigre-semana.json"
     #filename = "datos_en_json.json"
     #filename = "instances/experiment.json"
     with open(filename) as json_file:
@@ -19,7 +20,7 @@ def main():
 
     graph_representation, positions, night_edges = gr.create_graph(data)
     
-    grafo_modificado, positions, night_edges = gr.agregar_limitacion2(data, graph_representation, "Tigre", 10)
+    grafo_modificado, positions, night_edges = gr.agregar_limitacion2(data, graph_representation, name_station_zero, 40)
     
     list_one = []
     list_zero = []

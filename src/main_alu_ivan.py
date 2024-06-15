@@ -102,7 +102,7 @@ def main():
 
 	print("AGREGANDO MODIFICACION")
 
-	"""nuevo_grafo = gr.agregar_limitacion(grafo_retiro_tigre, "Tigre", 10)
+	nuevo_grafo = gr.agregar_limitacion(grafo_retiro_tigre, "Tigre", 10)
 
 	lista_retiro = []
 	lista_tigre = []
@@ -144,7 +144,7 @@ def main():
 				flujo_tigre += solucion[nodo][vecino]
 			primero_tigre = (primero_tigre[0], flujo_tigre)
 
-	print("retiro: ", primero_retiro, "tigre: ", primero_tigre)"""
+	print("retiro: ", primero_retiro, "tigre: ", primero_tigre)
 
 if __name__ == "__main__":
 	main()
