@@ -81,3 +81,24 @@ experiment7 = {"services": {
 "stations": ["Tigre", "Retiro"],
 "cost_per_unit": {"Tigre": 1.0, "Retiro": 1.0}, "rs_info": {"capacity": 100, "max_rs": 25}
 }
+
+experiment8 = {"services": { # Funciona mejor en el modelo que en el algoritmo
+    "3001": {"stops": [{"time": 100, "station": "Retiro", "type": "D"}, {"time": 154, "station": "Tigre", "type": "A"}], "demand": [250]},
+    "3003": {"stops": [{"time": 155, "station": "Tigre", "type": "D"}, {"time": 209, "station": "Retiro", "type": "A"}], "demand": [250]},
+    "3005": {"stops": [{"time": 210, "station": "Retiro", "type": "D"}, {"time": 264, "station": "Tigre", "type": "A"}], "demand": [500]},
+    "3007": {"stops": [{"time": 265, "station": "Tigre", "type": "D"}, {"time": 319, "station": "Retiro", "type": "A"}], "demand": [500]},
+    "3009": {"stops": [{"time": 320, "station": "Retiro", "type": "D"}, {"time": 374, "station": "Tigre", "type": "A"}], "demand": [500]}
+},
+"stations": ["Tigre", "Retiro"],
+"cost_per_unit": {"Tigre": 1.0, "Retiro": 1.0}, "rs_info": {"capacity": 100, "max_rs": 60}
+}
+
+experiment9 = {"services": { # CONTRA EJEMPLO QUE FUNCIONA
+    "3001": {"stops": [{"time": 100, "station": "Retiro", "type": "D"}, {"time": 154, "station": "Tigre", "type": "A"}], "demand": [100]},
+    "3005": {"stops": [{"time": 160, "station": "Tigre", "type": "D"}, {"time": 214, "station": "Retiro", "type": "A"}], "demand": [400]},
+    "3007": {"stops": [{"time": 215, "station": "Retiro", "type": "D"}, {"time": 269, "station": "Tigre", "type": "A"}], "demand": [200]},
+    "3011": {"stops": [{"time": 270, "station": "Tigre", "type": "D"}, {"time": 324, "station": "Retiro", "type": "A"}], "demand": [500]}
+},
+"stations": ["Tigre", "Retiro"],
+"cost_per_unit": {"Tigre": 1.0, "Retiro": 1.0}, "rs_info": {"capacity": 100, "max_rs": 25}
+}

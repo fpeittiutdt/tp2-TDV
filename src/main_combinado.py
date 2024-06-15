@@ -58,7 +58,7 @@ def create_graph(datos):
         grafo.add_edge(nombre_nodo_D, nombre_nodo_A, upper_bound = upper_bound_modified, amount_modified = math.ceil(capacity_edge))
         
         if nombre_nodo_station_D == name_station_zero:
-            if nombre_nodo_D[0] * 10 < pos_prev[0] and nombre_nodo_D[0] * 10 - pos_prev[0] < distance_minimum_nodes:
+            """if nombre_nodo_D[0] * 10 < pos_prev[0] and nombre_nodo_D[0] * 10 - pos_prev[0] < distance_minimum_nodes:
                 pos[nombre_nodo_D] = (0, nombre_nodo_D[0] * 10 - distance_minimum_nodes)
             elif nombre_nodo_D[0] * 10 > pos_prev[0] and nombre_nodo_D[0] * 10 - pos_prev[0] < distance_minimum_nodes:
                 pos[nombre_nodo_D] = (0, nombre_nodo_D[0] * 10 + distance_minimum_nodes)
@@ -72,11 +72,11 @@ def create_graph(datos):
             else:
                 pos[nombre_nodo_A] = (0.5, nombre_nodo_A[0] * 10)
             
-            pos_prev = (pos[nombre_nodo_D][1], pos[nombre_nodo_A][1])
+            pos_prev = (pos[nombre_nodo_D][1], pos[nombre_nodo_A][1])"""
             servicies_zero.append(nombre_nodo_D)
             servicies_one.append(nombre_nodo_A)
         else:
-            if nombre_nodo_D[0] * 10 < pos_prev[1] and nombre_nodo_D[0] * 10 - pos_prev[1] < distance_minimum_nodes:
+            """if nombre_nodo_D[0] * 10 < pos_prev[1] and nombre_nodo_D[0] * 10 - pos_prev[1] < distance_minimum_nodes:
                 pos[nombre_nodo_D] = (0.5, nombre_nodo_D[0] * 10 - distance_minimum_nodes)
             elif nombre_nodo_D[0] * 10 > pos_prev[1] and nombre_nodo_D[0] * 10 - pos_prev[1] < distance_minimum_nodes:
                 pos[nombre_nodo_D] = (0.5, nombre_nodo_D[0] * 10 + distance_minimum_nodes)
@@ -90,7 +90,7 @@ def create_graph(datos):
             else:
                 pos[nombre_nodo_A] = (0, nombre_nodo_A[0] * 10)
 
-            pos_prev = (pos[nombre_nodo_A][1], pos[nombre_nodo_D][1])
+            pos_prev = (pos[nombre_nodo_A][1], pos[nombre_nodo_D][1])"""
             servicies_one.append(nombre_nodo_D)
             servicies_zero.append(nombre_nodo_A)
     
