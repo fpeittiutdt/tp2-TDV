@@ -61,7 +61,7 @@ def manual_method(data):
 
 
 # Se carga la instancia
-filename = "instances/experiment.json"
+filename = "instances/moreno-once.json"
 with open(filename) as json_file:
     data = json.load(json_file)
 
