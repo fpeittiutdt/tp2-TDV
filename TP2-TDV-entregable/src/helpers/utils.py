@@ -34,7 +34,7 @@ def load_instance(instance: str):
     El contenido estructurado de una instancia.
     """
 
-    with open("./instances/{}.json".format(INSTANCES[instance])) as json_file:
+    with open("../instances/{}.json".format(INSTANCES[instance])) as json_file:
         return json.load(json_file)
 
 
