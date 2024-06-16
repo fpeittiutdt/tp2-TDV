@@ -54,12 +54,6 @@ def manual_method(data):
                 new_units[station] += minimum_units - stock[station]
                 stock[station] = 0
 
-    # Determinamos la cantidad de stock necesario para cubrir todas las demandas.
-    # initial_units_needed: stock necesario en cada estación de cabecera al inicio del día
-    # final_stock: el stock en cada estación al final del día
-    # si initial_units_needed es distinto de final_stock entonces es necesario hacer servicios
-    # durante la noche para reubicar las unidades.
-
     result = {"initial_units_needed": new_units, "final_stock": stock}
 
     return result
