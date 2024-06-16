@@ -373,9 +373,7 @@ def add_limitation2(
 
     station_names = [instance["stations"][0], instance["stations"][1]]
 
-    # Agregamos la cota superior a la arista de trasnoche ya existente
-
-    G_prime = add_limitation(G, target_station, upper_bound)
+    G_prime = G
 
     last_trains = [(None, None), (None, None)]
     first_trains = [(None, None), (None, None)]
@@ -435,7 +433,7 @@ def add_limitation2(
             new_nodes[1],
             weight=instance[COST][station_names[0]],
             amount_modified=0,
-            upper_bound=G_prime[last_trains[0]][first_trains[0]]["upper_bound"],
+            upper_bound=upper_bound,
         )
         edge_colors[new_nodes[0], new_nodes[1]] = "purple"
         G_prime.add_edge(
@@ -462,7 +460,7 @@ def add_limitation2(
             new_nodes[3],
             weight=instance[COST][station_names[1]],
             amount_modified=0,
-            upper_bound=G_prime[last_trains[1]][first_trains[1]]["upper_bound"],
+            upper_bound=upper_bound,
         )
         edge_colors[new_nodes[2], new_nodes[3]] = "purple"
         G_prime.add_edge(new_nodes[1], new_nodes[3], amount_modified=0)
