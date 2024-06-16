@@ -3,6 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import math
 from helpers.constants import *
+from helpers.utils import *
 
 
 def manual_method(data):
@@ -60,7 +61,7 @@ def manual_method(data):
 
 
 # Se carga la instancia
-filename = "instances/retiro-tigre-semana.json"
+filename = "instances/experiment.json"
 with open(filename) as json_file:
     data = json.load(json_file)
 

@@ -8,9 +8,9 @@ def main():
     print("AGREGANDO MODIFICACION")
     
     #filename = "instances/toy_instance.json"
-    filename = "instances/retiro-tigre-semana.json"
+    #filename = "instances/retiro-tigre-semana.json"
     #filename = "datos_en_json.json"
-    #filename = "instances/experiment.json"
+    filename = "instances/experiment.json"
     with open(filename) as json_file:
         data = json.load(json_file)
     

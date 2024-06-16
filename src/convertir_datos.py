@@ -63,51 +63,78 @@ with open(filename2 + ".csv", "r", encoding="utf-8") as file:
     next(csvreader)
 
     # Loop through each row in the CSV file
-    maximo = 5
-    i = 0
-    llegada = None
-    salida = None
+    datos_ida_y_vuelta = {}
+    ida = None
+    vuelta = None
+    service_id = (None, None)
+    datos_ida = None
+    datos_vuelta = None
 
-    for row in csvreader:
+    rows = list(csvreader)
+    for row_pos in range(0, len(rows)-1, 2):
         # Each row is a list of values, you can access them by index
         # print(row)
-        if i == maximo:
-            break
-        else:
-            if row[3] == "Moreno" or row[3] == "Moreno (RÁPIDO)":
-                llegada = "Moreno"
-                salida = "Once"
-            elif row[3] == "Once" or row[3] == "Once (RÁPIDO)":
-                llegada = "Once"
-                salida = "Moreno"
-            if (
-                row[3] == "Moreno"
-                or row[3] == "Moreno (RÁPIDO)"
-                or row[3] == "Once"
-                or row[3] == "Once (RÁPIDO)"
-            ):
+        datos_ida = (rows[row_pos][3], int(rows[row_pos][2]))
+        datos_vuelta = (rows[row_pos+1][3], int(rows[row_pos+1][2]))
 
-                service_id = row[2]
+        datos_ida_y_vuelta = {
+            "ida": {
+                "name": datos_ida[0],
+                "id": datos_ida[1]
+            },
+            "vuelta": {
+                "name": datos_vuelta[0],
+                "id": datos_vuelta[1]
+            }
+        }
 
-                if dict_tiempos[int(service_id)][2] >= 15:
-                    instance["services"][service_id] = {}
+        if (datos_ida_y_vuelta["ida"]["name"] == "Once" or datos_ida_y_vuelta["ida"]["name"] == "Once (RÁPIDO)") and (datos_ida_y_vuelta["vuelta"]["name"] == "Moreno" or datos_ida_y_vuelta["vuelta"]["name"] == "Moreno (RÁPIDO)"):
+            vuelta = "Moreno"
+            ida = "Once"
+        
+            service_id = (datos_ida_y_vuelta["ida"]["id"], datos_ida_y_vuelta["vuelta"]["id"])
+            
+            if dict_tiempos[service_id[0]][2] >= 15 and dict_tiempos[service_id[1]][2] >= 15:
+                    
+                    instance["services"][service_id[0]] = {}
                     dep = {
-                        "time": dict_tiempos[int(service_id)][0],
-                        "station": salida,
+                        "time": dict_tiempos[service_id[0]][0],
+                        "station": ida,
                         "type": "D",
                     }
                     arr = {
-                        "time": dict_tiempos[int(service_id)][1],
-                        "station": llegada,
+                        "time": dict_tiempos[service_id[0]][1],
+                        "station": vuelta,
                         "type": "A",
                     }
-                    instance["services"][service_id]["stops"] = copy.deepcopy(
+                    instance["services"][service_id[0]]["stops"] = copy.deepcopy(
                         [dep, arr]
                     )
-                    instance["services"][service_id]["demand"] = [
+                    instance["services"][service_id[0]]["demand"] = [
                         random.randint(100, 700)
                     ]
-                    i += 1
+                    
+
+                    instance["services"][service_id[1]] = {}
+                    dep = {
+                        "time": dict_tiempos[service_id[1]][0],
+                        "station": vuelta,
+                        "type": "D",
+                    }
+                    arr = {
+                        "time": dict_tiempos[service_id[1]][1],
+                        "station": ida,
+                        "type": "A",
+                    }
+                    instance["services"][service_id[1]]["stops"] = copy.deepcopy(
+                        [dep, arr]
+                    )
+                    instance["services"][service_id[1]]["demand"] = [
+                        random.randint(100, 700)
+                    ]
+            datos_ida_y_vuelta = {}
+            datos_ida = None
+            datos_vuelta = None
 
 
 # instance['rs_info'] = {'capacity': 100, 'max_rs': 6}
