@@ -133,7 +133,6 @@ def add_services(instance):
     services_by_station[station_names[0]].sort(key=lambda x: x[0])
     services_by_station[station_names[1]].sort(key=lambda x: x[0])
 
-
     # Asignamos las posiciones correspondientes a los nodos.
     nodes = list(G.nodes())
     nodes.sort()
@@ -305,7 +304,7 @@ def visualize_graph(
                 edge_labels={edge: minCostFlow[edge[0]][edge[1]]},
                 font_size=20,
                 rotate=False,
-                connectionstyle="arc3, rad=0.5",
+                connectionstyle="arc3, rad={}".format(rad),
             )
         else:
             nx.draw_networkx_edges(
@@ -318,7 +317,6 @@ def visualize_graph(
 
 
 def add_limitation(G, target_station, upper_bound):
-
     """
     Asigna una capacidad a la arista de trasnoche de la cabecera recibida.
 
@@ -347,7 +345,6 @@ def add_limitation(G, target_station, upper_bound):
 def add_limitation2(
     instance, G, target_station, upper_bound, colors, edge_colors, border_colors
 ):
-    
     """
     Asigna una capacidad a la arista de trasnoche de la cabecera recibida y dos nuevos servicios:
         -Un servicio final (posterior a todos los demas) entre la cabecera recibida y la opuesta
@@ -377,7 +374,7 @@ def add_limitation2(
     # Agregamos la limitación a la arista de trasnoche ya existente
 
     G_prime = add_limitation(G, target_station, upper_bound)
-    
+
     last_trains = [(None, None), (None, None)]
     first_trains = [(None, None), (None, None)]
     night_edges = []

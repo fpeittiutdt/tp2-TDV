@@ -292,7 +292,7 @@ def visualize_graph(
                 edge_labels={edge: minCostFlow[edge[0]][edge[1]]},
                 font_size=20,
                 rotate=False,
-                connectionstyle="arc3, rad=0.5",
+                connectionstyle="arc3, rad={}".format(rad),
             )
         else:
             nx.draw_networkx_edges(
