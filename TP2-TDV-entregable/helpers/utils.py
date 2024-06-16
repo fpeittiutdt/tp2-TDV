@@ -11,8 +11,11 @@ def print_usage():
     
     Options:
         -i    Especifique el nombre de la instancia. Los nombres de instancia válidos son: {}
-        -l1   Opcional. Si se desea agregar una limitación al limite de vagones en una cabecera durante la noche, utilizando el primer metodo. Especifique
+        -l1   Opcional. Si se desea agregar una limitación al limite de vagones en una cabecera durante la noche, utilizando el primer método. Especifique
         la cabecera en formato numerico (0 ó 1) y el limite a establecer.
+        -l2   Opcional. Si se desea agregar una limitación al limite de vagones en una cabecera durante la noche, utilizando el segundo método. Especifique
+        la cabecera en formato numerico (0 ó 1) y el limite a establecer.
+        Solamente puede usarse una limitación a la vez.
     """.format(
         ", ".join(INSTANCES)
     )
@@ -27,8 +30,8 @@ def load_instance(instance: str):
     Parámetros:
     instance (str): El nombre de la instancia a cargar. Este nombre debe estar presente en el diccionario INSTANCES.
 
-    Retorna:
-    dict: El contenido estructurado de una instancia.
+    Devuelve:
+    El contenido estructurado de una instancia.
     """
 
     with open("./instances/{}.json".format(INSTANCES[instance])) as json_file:
@@ -37,20 +40,20 @@ def load_instance(instance: str):
 
 def add_services(instance):
     """
-    Agrega nodes y aristas al grafo según la información proporcionada en la instancia.
+    Agrega nodos y aristas al grafo según la información proporcionada en la instancia.
 
     Parámetros:
     instance (dict): Un diccionario que contiene la información de la instancia.
 
-    Retorna:
-    tuple: Una tupla que contiene:
-        - G (networkx.Graph): El G actualizado con nodes y aristas.
-        - colors (list): Una lista de colores para los nodos.
-        - labels (dict): Un diccionario que asigna etiquetas a los nodos.
-        - pos (dict): Un diccionario que asigna posiciones a los nodos.
-        - border_colors (list): Una lista de colores de borde para los nodos.
-        - edge_colors (dict): Un diccionario que asigna colores a las aristas.
-        - service_by_station (dict): Un diccionario que asigna los nodos correspondientes a cada estación
+    Devuelve:
+    Una tupla que contiene:
+        - El grafo actualizado con nodos y aristas.
+        - colors: Una lista de colores para los nodos.
+        - labels: Un diccionario que asigna etiquetas a los nodos.
+        - pos: Un diccionario que asigna posiciones a los nodos.
+        - border_colors: Una lista de colores de borde para los nodos.
+        - edge_color: Un diccionario que asigna colores a las aristas.
+        - service_by_station: Un diccionario que asigna los nodos correspondientes a cada estación
     """
     G = nx.DiGraph()
 
@@ -133,7 +136,7 @@ def add_services(instance):
     services_by_station[station_names[0]].sort(key=lambda x: x[0])
     services_by_station[station_names[1]].sort(key=lambda x: x[0])
 
-    # Asignamos las posiciones correspondientes a los nodos.
+    # Asignamos las posiciones correspondientes a los nodos para graficar.
     nodes = list(G.nodes())
     nodes.sort()
     for node_pos in range(len(nodes)):
@@ -150,15 +153,15 @@ def add_night_pass_edges(G, instance, edge_colors, services_by_station):
     Agrega aristas para representar conexiones de traspaso y de trasnoche entre estaciones en el grafo.
 
     Parámetros:
-    G (networkx.Graph): El grafo al que se agregarán las aristas.
-    instance (dict): Un diccionario que contiene la información de la instancia.
-    edge_colors (dict): Un diccionario que asigna colores a las aristas.
-    service_by_station (dict): Un diccionario que asigna los nodos correspondientes a cada estación
+    G: El grafo al que se agregarán las aristas.
+    instance: Un diccionario que contiene la información de la instancia.
+    edge_colors: Un diccionario que asigna colores a las aristas.
+    services_by_station: Un diccionario que asigna los nodos correspondientes a cada estación.
 
-    Retorna:
-    tuple: Una tupla que contiene:
-        - G (networkx.Graph): El grafo actualizado con las aristas nocturnas.
-        - night_edges (list): Una lista de aristas nocturnas agregadas al grafo.
+    Devuelve:
+    Una tupla que contiene:
+        - G: El grafo actualizado con las aristas nocturnas.
+        - night_edges: Una lista de aristas nocturnas agregadas al grafo.
     """
 
     night_edges = []
@@ -258,48 +261,46 @@ def add_night_pass_edges(G, instance, edge_colors, services_by_station):
 
 
 def visualize_graph(
-    G_prime, colors, pos, labels, border_colors, edge_colors, night_edges, minCostFlow
+    G, colors, pos, labels, border_colors, edge_colors, night_edges, minCostFlow
 ):
     """
-    Visualiza el grafo con los colores, posiciones y etiquetas proporcionados.
+    Grafica el grafo con los colores, posiciones y etiquetas proporcionados.
 
     Parámetros:
-        G_prime (networkx.Graph): El G a visualizar.
-        colors (list): Una lista de colores para los nodos.
-        pos (dict): Un diccionario que asigna posiciones a los nodos.
-        labels (dict): Un diccionario que asigna etiquetas a los nodos.
-        border_colors (list): Una lista de colores de borde para los nodos.
-        edge_colors (dict): Un diccionario que asigna colores a las aristas.
-        night_edges (list): Una lista de aristas nocturnas.
-        minCostFlow (dict): Un diccionario que contiene el flujo de costo mínimo en el grafo.
+        G: El grafo a visualizar.
+        colors: Una lista de colores para los nodos.
+        pos: Un diccionario que asigna posiciones a los nodos.
+        labels: Un diccionario que asigna etiquetas a los nodos.
+        border_colors: Una lista de colores de borde para los nodos.
+        edge_colors: Un diccionario que asigna colores a las aristas.
+        night_edges: Una lista de aristas de trasnoche.
+        minCostFlow: Un diccionario que contiene el flujo de costo mínimo en el grafo.
     """
 
     nx.draw_networkx_nodes(
-        G_prime,
+        G,
         node_color=colors,
         pos=pos,
         node_size=400,
         node_shape="s",
-        linewidths=G_prime.number_of_nodes() * [1],
+        linewidths=G.number_of_nodes() * [1],
         edgecolors=border_colors,
     )
-    nx.draw_networkx_labels(
-        G_prime, pos=pos, labels=labels, font_size=8, font_family="serif"
-    )
+    nx.draw_networkx_labels(G, pos=pos, labels=labels, font_size=8, font_family="serif")
 
-    for edge in G_prime.edges():
+    for edge in G.edges():
         if edge in night_edges:
             rad = -0.5 if pos[edge[0]][0] != 0 else 0.5
 
             nx.draw_networkx_edges(
-                G_prime,
+                G,
                 pos=pos,
                 edgelist=[edge],
                 edge_color=edge_colors[edge],
                 connectionstyle="arc3, rad={}".format(rad),
             )
             nx.draw_networkx_edge_labels(
-                G_prime,
+                G,
                 pos=pos,
                 edge_labels={edge: minCostFlow[edge[0]][edge[1]]},
                 font_size=20,
@@ -308,7 +309,7 @@ def visualize_graph(
             )
         else:
             nx.draw_networkx_edges(
-                G_prime, pos=pos, edgelist=[edge], edge_color=edge_colors[edge]
+                G, pos=pos, edgelist=[edge], edge_color=edge_colors[edge]
             )
 
     plt.gca().invert_yaxis()
@@ -318,15 +319,15 @@ def visualize_graph(
 
 def add_limitation(G, target_station, upper_bound):
     """
-    Asigna una capacidad a la arista de trasnoche de la cabecera recibida.
+    Asigna una capacidad upper_bound a la arista de trasnoche de la cabecera recibida (target_station).
 
-    Parametros:
-        G (networkx.DiGraph): El grafo al que se le modificara la arista correspondiente.
-        target_station (str): La cabecera a la que se le modificara la arista de trasnoche.
-        upper_bound (float): La capacidad que se le asignara a la arista de trasnoche.
+    Parámetros:
+        G: El grafo al que se le modificará la arista correspondiente.
+        target_station: La cabecera a la que se le modificará la arista de trasnoche.
+        upper_bound: La capacidad que se le asignará a la arista de trasnoche.
 
-    Retorna:
-        G (networkx.Graph): El G actualizado con la nueva capacidad en la arista de trasnoche.
+    Devuelve:
+        G: El grafo actualizado con la nueva capacidad en la arista de trasnoche.
     """
 
     last_train = None
@@ -338,6 +339,7 @@ def add_limitation(G, target_station, upper_bound):
             elif first_train is None or first_train > node[0]:
                 first_train = node[0]
 
+    # Una vez encontrados los nodos, se modifica la capacidad del arco.
     G[last_train][first_train]["upper_bound"] = upper_bound
     return G
 
@@ -346,32 +348,32 @@ def add_limitation2(
     instance, G, target_station, upper_bound, colors, edge_colors, border_colors
 ):
     """
-    Asigna una capacidad a la arista de trasnoche de la cabecera recibida y dos nuevos servicios:
+    Asigna una capacidad a la arista de trasnoche de la cabecera recibida y se agregan dos nuevos servicios:
         -Un servicio final (posterior a todos los demas) entre la cabecera recibida y la opuesta
         -Un servicio inicial (previo a todos los demas) entre la cabecera opuesta y la recibida
 
-    Parametros:
-        G (networkx.DiGraph): El grafo al que se le modificara la arista correspondiente.
-        target_station (str): La cabecera a la que se le modificara la arista de trasnoche.
-        upper_bound (float): La capacidad que se le asignara a la arista de trasnoche.
-        colors (list): Una lista de colores para los nodos.
-        border_colors (list): Una lista de colores de borde para los nodos.
-        edge_colors (dict): Un diccionario que asigna colores a las aristas.
+    Parámetros:
+        G: El grafo al que se le modificará la arista correspondiente.
+        target_station: La cabecera a la que se le modificará la arista de trasnoche.
+        upper_bound: La capacidad que se le asignará a la arista de trasnoche.
+        colors: Una lista de colores para los nodos.
+        border_colors: Una lista de colores de borde para los nodos.
+        edge_colors: Un diccionario que asigna colores a las aristas.
 
 
-    Retorna:
-        G (networkx.Graph): El G actualizado con la nueva capacidad en la arista de trasnoche
+    Devuelve:
+        G: El grafo actualizado con la nueva capacidad en la arista de trasnoche
         y los nuevos nodos.
-        - pos (dict): Un diccionario que asigna posiciones a los nodos.
-        - night_edges (list): Una lista de aristas nocturnas agregadas al grafo.
-        - colors (list): Una lista de colores para los nodos.
-        - border_colors (list): Una lista de colores de borde para los nodos.
-        - edge_colors (dict): Un diccionario que asigna colores a las aristas.
+        - pos: Un diccionario que asigna posiciones a los nodos.
+        - night_edges: Una lista de aristas nocturnas agregadas al grafo.
+        - colors: Una lista de colores para los nodos.
+        - border_colors: Una lista de colores de borde para los nodos.
+        - edge_colors: Un diccionario que asigna colores a las aristas.
     """
 
     station_names = [instance["stations"][0], instance["stations"][1]]
 
-    # Agregamos la limitación a la arista de trasnoche ya existente
+    # Agregamos la cota superior a la arista de trasnoche ya existente
 
     G_prime = add_limitation(G, target_station, upper_bound)
 
@@ -423,8 +425,9 @@ def add_limitation2(
     night_edges.append((new_nodes[2], new_nodes[3]))
 
     # Agregamos las aristas que corresponden a esos servicios:
-    #   -En el servicio final, hay una arista desde target_station hasta la estación opuesta
-    #   -En el servicio inicial, hay una arista desde la estación opuesta hasta target_station
+    #   -En el servicio final, hay una arista desde target_station hasta la estación opuesta.
+    #   -En el servicio inicial, hay una arista desde la estación opuesta hasta target_station.
+    # Reasignamos las aristas de trasnoche.
 
     if target_station == station_names[0]:
         G_prime.add_edge(
