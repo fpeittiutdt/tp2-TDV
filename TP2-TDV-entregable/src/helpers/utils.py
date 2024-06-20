@@ -317,34 +317,7 @@ def visualize_graph(
     plt.show()
 
 
-def add_limitation(G, target_station, upper_bound):
-    """
-    Asigna una capacidad upper_bound a la arista de trasnoche de la cabecera recibida (target_station).
-
-    Parámetros:
-        G: El grafo al que se le modificará la arista correspondiente.
-        target_station: La cabecera a la que se le modificará la arista de trasnoche.
-        upper_bound: La capacidad que se le asignará a la arista de trasnoche.
-
-    Devuelve:
-        G: El grafo actualizado con la nueva capacidad en la arista de trasnoche.
-    """
-
-    last_train = None
-    first_train = None
-    for node in G.nodes(data=True):
-        if node[1]["stations"] == target_station:
-            if last_train is None or last_train < node[0]:
-                last_train = node[0]
-            elif first_train is None or first_train > node[0]:
-                first_train = node[0]
-
-    # Una vez encontrados los nodos, se modifica la capacidad del arco.
-    G[last_train][first_train]["upper_bound"] = upper_bound
-    return G
-
-
-def add_limitation2(
+def add_limitation(
     instance, G, target_station, upper_bound, colors, edge_colors, border_colors
 ):
     """

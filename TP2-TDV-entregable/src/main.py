@@ -5,7 +5,7 @@ import networkx as nx
 
 
 def main():
-    limitation = 0
+    limitation = False
     if (
         len(sys.argv) < 3
         or sys.argv[1] not in ("-i", "--instance")
@@ -23,17 +23,10 @@ def main():
 
     instance = load_instance(instance_name)
 
-    if len(sys.argv) == 6 and (
-        sys.argv[3] in ("-l1", "--limitation1")
-        or sys.argv[3]
-        in (
-            "-l2",
-            "--limitation2",
-        )
-    ):
+    if len(sys.argv) == 6 and (sys.argv[3] in ("-l", "--limitation")):
         if not (sys.argv[4].isnumeric() or sys.argv[5].isnumeric()):
             print(
-                f"Error: las limitaciones toman la forma de  -l1/-l2 indice-estación limitación-unidades. Ej: -l1 1 30"
+                f"Error: la limitación toma la forma de  -l indice-estación limitación-unidades. Ej: -l 1 30"
             )
             print_usage()
             sys.exit(1)
@@ -41,7 +34,7 @@ def main():
         # Definir valores para el upper_bound (capacidad) de la arista de trasnoche correspondiente a target_station (estación de cabecera).
         target_station = instance["stations"][int(sys.argv[4])]
         upper_bound = int(sys.argv[5])
-        limitation = 1 if sys.argv[3] in ("-l1", "--limitation1") else 2
+        limitation = True
 
     elif len(sys.argv) != 3:
         print_usage()
@@ -55,10 +48,8 @@ def main():
     G, night_edges = add_night_pass_edges(G, instance, edge_colors, services_by_station)
 
     # Agregamos una limitación de ser el caso.
-    if limitation == 1:
-        G = add_limitation(G, target_station, upper_bound)
-    elif limitation == 2:
-        G, pos, night_edges, colors, edge_colors, border_colors = add_limitation2(
+    if limitation:
+        G, pos, night_edges, colors, edge_colors, border_colors = add_limitation(
             instance, G, target_station, upper_bound, colors, edge_colors, border_colors
         )
 
